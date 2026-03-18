@@ -17,7 +17,7 @@ def _query_json(command: str) -> Any:
         raise CommandError(f"Invalid JSON response for '{command}': {e}") from e
 
 
-def getoption(key: str) -> dict:
+def get_option(key: str) -> dict:
     """Read a live option value from Hyprland.
 
     Raises ConnectionError or CommandError on failure.
@@ -47,6 +47,25 @@ def keyword_batch(commands: list[tuple[str, str]]) -> None:
         return
     batch = ";".join(f"keyword {key} {value}" for key, value in commands)
     _send(f"[[BATCH]]{batch}", timeout=5.0)
+
+
+def dispatch(dispatcher: str, arg: str = "") -> None:
+    """Execute a Hyprland dispatcher.
+
+    Raises CommandError if Hyprland rejects the command.
+    """
+    cmd = f"/dispatch {dispatcher} {arg}".rstrip()
+    response = _send(cmd)
+    output = response.strip().lower()
+    if "ok" not in output and output != "":
+        raise CommandError(
+            f"dispatch '{dispatcher} {arg}' rejected: {response.strip()}"
+        )
+
+
+def get_devices() -> dict:
+    """Read all input devices from Hyprland."""
+    return _query_json("devices")
 
 
 def reload() -> None:
@@ -84,7 +103,7 @@ def get_animations() -> tuple[list[Animation], list[dict]]:
 def is_running() -> bool:
     """Check if a Hyprland instance is reachable."""
     try:
-        getoption("general:gaps_in")
+        get_option("general:gaps_in")
         return True
     except (ConnectionError, CommandError):
         return False

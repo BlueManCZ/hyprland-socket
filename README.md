@@ -25,7 +25,7 @@ if hyprland_socket.is_running():
         print(f"{mon.name}: {mon.width}x{mon.height} @ {mon.refresh_rate}Hz")
 
     # Read a live option
-    option = hyprland_socket.getoption("general:gaps_in")
+    option = hyprland_socket.get_option("general:gaps_in")
     print(option)
 
     # Read keybinds
@@ -47,6 +47,9 @@ hyprland_socket.keyword_batch([
     ("general:gaps_out", "10"),
     ("decoration:rounding", "8"),
 ])
+
+# Execute a dispatcher
+hyprland_socket.dispatch("workspace", "2")
 
 # Reload config from disk
 hyprland_socket.reload()
@@ -93,7 +96,8 @@ except CommandError as e:
 | `get_monitors()` | `list[Monitor]` |
 | `get_binds()` | `list[Bind]` |
 | `get_animations()` | `tuple[list[Animation], list[dict]]` |
-| `getoption(key)` | `dict` |
+| `get_devices()` | `dict` |
+| `get_option(key)` | `dict` |
 
 All models are mutable dataclasses with a `from_dict()` classmethod for
 construction from Hyprland's JSON responses.

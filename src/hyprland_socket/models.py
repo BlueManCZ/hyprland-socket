@@ -21,6 +21,7 @@ class Monitor:
     bitdepth: str | None = None
     vrr: str | None = None
     cm: str | None = None
+    disabled: bool = False
 
     @classmethod
     def from_dict(cls, data: dict) -> "Monitor":

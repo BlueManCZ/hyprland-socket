@@ -1,6 +1,6 @@
 [project]
 name = "hyprland-socket"
-version = "0.1.0"
+version = "0.2.0"
 description = "Typed Python library for Hyprland IPC via Unix sockets"
 requires-python = ">=3.12"
 license = "MIT"

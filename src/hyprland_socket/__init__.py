@@ -1,10 +1,12 @@
 """hyprland-socket — Typed Python library for Hyprland IPC."""
 
 from .commands import (
+    dispatch,
     get_animations,
     get_binds,
+    get_devices,
     get_monitors,
-    getoption,
+    get_option,
     is_running,
     keyword,
     keyword_batch,
@@ -23,11 +25,13 @@ __all__ = [
     "HyprlandError",
     "Monitor",
     "connect_event_socket",
+    "dispatch",
     "events",
     "get_animations",
     "get_binds",
+    "get_devices",
     "get_monitors",
-    "getoption",
+    "get_option",
     "is_running",
     "keyword",
     "keyword_batch",
