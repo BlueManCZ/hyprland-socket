@@ -3,21 +3,29 @@
 import os
 import socket
 
-from .errors import ConnectionError
+from .errors import SocketError
+
+
+def _hypr_dir() -> str:
+    """Return the Hyprland instance directory.
+
+    Raises SocketError if HYPRLAND_INSTANCE_SIGNATURE is not set.
+    """
+    sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
+    if not sig:
+        raise SocketError("HYPRLAND_INSTANCE_SIGNATURE is not set — is Hyprland running?")
+    runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    return f"{runtime}/hypr/{sig}"
 
 
 def _socket_path() -> str:
     """Return the Hyprland command socket path."""
-    runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
-    sig = os.environ["HYPRLAND_INSTANCE_SIGNATURE"]
-    return f"{runtime}/hypr/{sig}/.socket.sock"
+    return f"{_hypr_dir()}/.socket.sock"
 
 
 def _event_socket_path() -> str:
     """Return the Hyprland event socket path (socket2)."""
-    runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
-    sig = os.environ["HYPRLAND_INSTANCE_SIGNATURE"]
-    return f"{runtime}/hypr/{sig}/.socket2.sock"
+    return f"{_hypr_dir()}/.socket2.sock"
 
 
 def _send(command: str, timeout: float = 2.0) -> str:
@@ -27,22 +35,23 @@ def _send(command: str, timeout: float = 2.0) -> str:
     after reading — Hyprland processes connections synchronously and
     an unclosed socket will freeze the compositor.
 
-    Raises ConnectionError if the socket is unreachable.
+    Raises SocketError if the socket is unreachable.
     """
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     try:
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         sock.settimeout(timeout)
         sock.connect(_socket_path())
-        try:
-            sock.sendall(command.encode())
-            chunks = []
-            while True:
-                chunk = sock.recv(8192)
-                if not chunk:
-                    break
-                chunks.append(chunk)
-            return b"".join(chunks).decode()
-        finally:
-            sock.close()
+        sock.sendall(command.encode())
+        chunks = []
+        while True:
+            chunk = sock.recv(8192)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        return b"".join(chunks).decode()
+    except SocketError:
+        raise
     except Exception as e:
-        raise ConnectionError(f"Cannot reach Hyprland socket: {e}") from e
+        raise SocketError(f"Cannot reach Hyprland socket: {e}") from e
+    finally:
+        sock.close()

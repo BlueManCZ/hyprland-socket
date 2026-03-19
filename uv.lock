@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "hyprland-socket"
-version = "0.1.0"
+version = "0.3.0"
 source = { editable = "." }
 
 [package.dev-dependencies]
@@ -27,7 +27,7 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "pytest", specifier = ">=9.0" },
-    { name = "ruff", specifier = ">=0.11" },
+    { name = "ruff", specifier = ">=0.15" },
 ]
 
 [[package]]

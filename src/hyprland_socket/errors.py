@@ -5,7 +5,7 @@ class HyprlandError(Exception):
     """Base exception for all Hyprland IPC errors."""
 
 
-class ConnectionError(HyprlandError):
+class SocketError(HyprlandError):
     """Cannot reach the Hyprland socket."""
 
 

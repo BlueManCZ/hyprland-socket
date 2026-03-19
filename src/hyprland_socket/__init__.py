@@ -12,19 +12,20 @@ from .commands import (
     keyword_batch,
     reload,
 )
-from .errors import CommandError, ConnectionError, HyprlandError
-from .events import Event, connect_event_socket, events
+from .errors import CommandError, HyprlandError, SocketError
+from .events import Event, connect_event_socket, events, parse_event_line
 from .models import Animation, Bind, Monitor
 
 __all__ = [
     "Animation",
     "Bind",
     "CommandError",
-    "ConnectionError",
     "Event",
     "HyprlandError",
     "Monitor",
+    "SocketError",
     "connect_event_socket",
+    "parse_event_line",
     "dispatch",
     "events",
     "get_animations",

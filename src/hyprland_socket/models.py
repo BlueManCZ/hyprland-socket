@@ -1,9 +1,10 @@
 """Typed dataclasses for Hyprland IPC responses."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import Self
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Monitor:
     name: str
     make: str
@@ -17,23 +18,21 @@ class Monitor:
     transform: int = 0
     focused: bool = False
     current_format: str = ""
-    available_modes: list[str] = field(default_factory=list)
-    bitdepth: str | None = None
-    vrr: str | None = None
-    cm: str | None = None
+    available_modes: tuple[str, ...] = ()
+    bit_depth: int = 8
+    vrr: bool = False
+    color_management: str | None = None
     disabled: bool = False
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Monitor":
-        # Infer bitdepth from pixel format
+    def from_dict(cls, data: dict) -> Self:
+        # Infer bit depth from pixel format
         fmt = data.get("currentFormat", "")
-        bitdepth = None
-        if "2101010" in fmt or "16161616" in fmt:
-            bitdepth = "10"
+        bit_depth = 10 if "2101010" in fmt else 8
 
         # Color management preset
         cm_raw = data.get("colorManagementPreset")
-        cm = cm_raw if cm_raw and cm_raw not in ("default", "srgb") else None
+        color_management = cm_raw if cm_raw and cm_raw not in ("default", "srgb") else None
 
         return cls(
             name=data["name"],
@@ -48,18 +47,18 @@ class Monitor:
             transform=data.get("transform", 0),
             focused=data.get("focused", False),
             current_format=data.get("currentFormat", ""),
-            available_modes=[
-                m
-                if isinstance(m, str)
-                else f"{m['width']}x{m['height']}@{m['refreshRate']:.2f}Hz"
+            available_modes=tuple(
+                m if isinstance(m, str) else f"{m['width']}x{m['height']}@{m['refreshRate']:.2f}Hz"
                 for m in data.get("availableModes", [])
-            ],
-            bitdepth=bitdepth,
-            cm=cm,
+            ),
+            bit_depth=bit_depth,
+            vrr=data.get("vrr", False),
+            color_management=color_management,
+            disabled=data.get("disabled", False),
         )
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Bind:
     modmask: int
     key: str
@@ -67,7 +66,7 @@ class Bind:
     arg: str
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Bind":
+    def from_dict(cls, data: dict) -> Self:
         return cls(
             modmask=data["modmask"],
             key=data["key"],
@@ -76,7 +75,7 @@ class Bind:
         )
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Animation:
     name: str
     overridden: bool
@@ -86,7 +85,7 @@ class Animation:
     style: str = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Animation":
+    def from_dict(cls, data: dict) -> Self:
         return cls(
             name=data["name"],
             overridden=data["overridden"],

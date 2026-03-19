@@ -4,7 +4,7 @@ import json
 from typing import Any
 
 from ._socket import _send
-from .errors import CommandError, ConnectionError
+from .errors import CommandError, SocketError
 from .models import Animation, Bind, Monitor
 
 
@@ -13,14 +13,31 @@ def _query_json(command: str) -> Any:
     response = _send(f"j/{command}")
     try:
         return json.loads(response)
-    except (json.JSONDecodeError, ValueError) as e:
+    except json.JSONDecodeError as e:
         raise CommandError(f"Invalid JSON response for '{command}': {e}") from e
+
+
+def _check_response(response: str, label: str) -> None:
+    """Validate a command response from Hyprland.
+
+    Raises CommandError if the response indicates failure.
+    """
+    output = response.strip().lower()
+    if output not in ("ok", ""):
+        raise CommandError(f"{label} rejected: {response.strip()}")
+
+
+def _format_value(value: Any) -> str:
+    """Format a value for a Hyprland keyword command."""
+    if isinstance(value, bool):
+        return str(int(value))
+    return str(value)
 
 
 def get_option(key: str) -> dict:
     """Read a live option value from Hyprland.
 
-    Raises ConnectionError or CommandError on failure.
+    Raises SocketError or CommandError on failure.
     """
     return _query_json(f"getoption {key}")
 
@@ -30,23 +47,20 @@ def keyword(key: str, value: Any) -> None:
 
     Raises CommandError if Hyprland rejects the command.
     """
-    if isinstance(value, bool):
-        value = int(value)
-    response = _send(f"/keyword {key} {value}")
-    output = response.strip().lower()
-    if output != "ok" and output != "":
-        raise CommandError(f"keyword '{key} {value}' rejected: {response.strip()}")
+    response = _send(f"/keyword {key} {_format_value(value)}")
+    _check_response(response, f"keyword '{key} {value}'")
 
 
-def keyword_batch(commands: list[tuple[str, str]]) -> None:
+def keyword_batch(commands: list[tuple[str, Any]]) -> None:
     """Apply multiple keyword settings in a single batch call.
 
     Raises CommandError on failure.
     """
     if not commands:
         return
-    batch = ";".join(f"keyword {key} {value}" for key, value in commands)
-    _send(f"[[BATCH]]{batch}", timeout=5.0)
+    batch = ";".join(f"keyword {key} {_format_value(value)}" for key, value in commands)
+    response = _send(f"[[BATCH]]{batch}", timeout=5.0)
+    _check_response(response, f"keyword_batch ({len(commands)} commands)")
 
 
 def dispatch(dispatcher: str, arg: str = "") -> None:
@@ -56,11 +70,7 @@ def dispatch(dispatcher: str, arg: str = "") -> None:
     """
     cmd = f"/dispatch {dispatcher} {arg}".rstrip()
     response = _send(cmd)
-    output = response.strip().lower()
-    if "ok" not in output and output != "":
-        raise CommandError(
-            f"dispatch '{dispatcher} {arg}' rejected: {response.strip()}"
-        )
+    _check_response(response, f"dispatch '{dispatcher} {arg}'")
 
 
 def get_devices() -> dict:
@@ -71,7 +81,7 @@ def get_devices() -> dict:
 def reload() -> None:
     """Tell Hyprland to reload its config.
 
-    Raises ConnectionError if unreachable.
+    Raises SocketError if unreachable.
     """
     _send("/reload")
 
@@ -103,7 +113,7 @@ def get_animations() -> tuple[list[Animation], list[dict]]:
 def is_running() -> bool:
     """Check if a Hyprland instance is reachable."""
     try:
-        get_option("general:gaps_in")
+        _query_json("version")
         return True
-    except (ConnectionError, CommandError):
+    except (SocketError, CommandError):
         return False
