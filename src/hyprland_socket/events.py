@@ -5,10 +5,10 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 
 from ._socket import _event_socket_path
-from .errors import ConnectionError
+from .errors import SocketError
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class Event:
     name: str
     data: str
@@ -20,17 +20,21 @@ def connect_event_socket(timeout: float | None = None) -> socket.socket:
     The caller owns the socket and must close it. The raw fd can be
     used with external event loops (e.g. GLib.io_add_watch).
     """
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     try:
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         if timeout is not None:
             sock.settimeout(timeout)
         sock.connect(_event_socket_path())
         return sock
+    except SocketError:
+        sock.close()
+        raise
     except Exception as e:
-        raise ConnectionError(f"Cannot reach Hyprland event socket: {e}") from e
+        sock.close()
+        raise SocketError(f"Cannot reach Hyprland event socket: {e}") from e
 
 
-def _parse_event_line(line: str) -> Event | None:
+def parse_event_line(line: str) -> Event | None:
     """Parse a single event line into an Event."""
     line = line.strip()
     if not line:
@@ -56,7 +60,7 @@ def events(timeout: float | None = None) -> Iterator[Event]:
             buf += chunk.decode()
             while "\n" in buf:
                 line, buf = buf.split("\n", 1)
-                event = _parse_event_line(line)
+                event = parse_event_line(line)
                 if event is not None:
                     yield event
     finally:

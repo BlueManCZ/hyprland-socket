@@ -79,11 +79,11 @@ fd = sock.fileno()
 All functions raise typed exceptions instead of returning `None`:
 
 ```python
-from hyprland_socket import ConnectionError, CommandError
+from hyprland_socket import SocketError, CommandError
 
 try:
     hyprland_socket.keyword("invalid:option", "value")
-except ConnectionError:
+except SocketError:
     print("Hyprland is not running")
 except CommandError as e:
     print(f"Rejected: {e}")
@@ -91,13 +91,13 @@ except CommandError as e:
 
 ## Models
 
-| Function | Returns |
-|---|---|
-| `get_monitors()` | `list[Monitor]` |
-| `get_binds()` | `list[Bind]` |
+| Function           | Returns                              |
+|--------------------|--------------------------------------|
+| `get_monitors()`   | `list[Monitor]`                      |
+| `get_binds()`      | `list[Bind]`                         |
 | `get_animations()` | `tuple[list[Animation], list[dict]]` |
-| `get_devices()` | `dict` |
-| `get_option(key)` | `dict` |
+| `get_devices()`    | `dict`                               |
+| `get_option(key)`  | `dict`                               |
 
 All models are mutable dataclasses with a `from_dict()` classmethod for
 construction from Hyprland's JSON responses.

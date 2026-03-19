@@ -36,7 +36,7 @@ class TestMonitorFromDict:
 
     def test_available_modes(self):
         m = Monitor.from_dict(self.SAMPLE)
-        assert m.available_modes == ["3440x1440@99.98Hz", "2560x1440@60.00Hz"]
+        assert m.available_modes == ("3440x1440@99.98Hz", "2560x1440@60.00Hz")
 
     def test_missing_optional_fields(self):
         minimal = {
@@ -54,30 +54,30 @@ class TestMonitorFromDict:
         assert m.transform == 0
         assert m.focused is False
         assert m.current_format == ""
-        assert m.available_modes == []
-        assert m.bitdepth is None
-        assert m.vrr is None
-        assert m.cm is None
+        assert m.available_modes == ()
+        assert m.bit_depth == 8
+        assert m.vrr is False
+        assert m.color_management is None
 
-    def test_bitdepth_inferred_from_format(self):
+    def test_bit_depth_10_from_format(self):
         data = {**self.SAMPLE, "currentFormat": "XRGB2101010"}
         m = Monitor.from_dict(data)
-        assert m.bitdepth == "10"
+        assert m.bit_depth == 10
 
-    def test_bitdepth_none_for_8bit(self):
+    def test_bit_depth_8_for_standard(self):
         data = {**self.SAMPLE, "currentFormat": "XRGB8888"}
         m = Monitor.from_dict(data)
-        assert m.bitdepth is None
+        assert m.bit_depth == 8
 
-    def test_cm_from_preset(self):
+    def test_color_management_from_preset(self):
         data = {**self.SAMPLE, "colorManagementPreset": "hdr"}
         m = Monitor.from_dict(data)
-        assert m.cm == "hdr"
+        assert m.color_management == "hdr"
 
-    def test_cm_none_for_default(self):
+    def test_color_management_none_for_default(self):
         data = {**self.SAMPLE, "colorManagementPreset": "srgb"}
         m = Monitor.from_dict(data)
-        assert m.cm is None
+        assert m.color_management is None
 
     def test_available_modes_as_dicts(self):
         data = {
@@ -87,7 +87,7 @@ class TestMonitorFromDict:
             ],
         }
         m = Monitor.from_dict(data)
-        assert m.available_modes == ["1920x1080@60.00Hz"]
+        assert m.available_modes == ("1920x1080@60.00Hz",)
 
 
 class TestBindFromDict:
