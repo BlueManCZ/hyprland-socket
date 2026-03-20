@@ -26,10 +26,7 @@ def connect_event_socket(timeout: float | None = None) -> socket.socket:
             sock.settimeout(timeout)
         sock.connect(_event_socket_path())
         return sock
-    except SocketError:
-        sock.close()
-        raise
-    except Exception as e:
+    except OSError as e:
         sock.close()
         raise SocketError(f"Cannot reach Hyprland event socket: {e}") from e
 

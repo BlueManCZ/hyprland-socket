@@ -24,6 +24,14 @@ if hyprland_socket.is_running():
     for mon in hyprland_socket.get_monitors():
         print(f"{mon.name}: {mon.width}x{mon.height} @ {mon.refresh_rate}Hz")
 
+    # List all windows
+    for win in hyprland_socket.get_windows():
+        print(f"{win.class_name}: {win.title} (workspace {win.workspace_name})")
+
+    # List workspaces
+    for ws in hyprland_socket.get_workspaces():
+        print(f"Workspace {ws.name}: {ws.windows} windows on {ws.monitor}")
+
     # Read a live option
     option = hyprland_socket.get_option("general:gaps_in")
     print(option)
@@ -74,6 +82,10 @@ fd = sock.fileno()
 # Use GLib.io_add_watch(fd, ...) or similar
 ```
 
+For typed event dispatch with named fields instead of raw strings, see
+[hyprland-events](https://github.com/BlueManCZ/hyprland-events) which
+builds on this library.
+
 ## Error handling
 
 All functions raise typed exceptions instead of returning `None`:
@@ -91,16 +103,28 @@ except CommandError as e:
 
 ## Models
 
-| Function           | Returns                              |
-|--------------------|--------------------------------------|
-| `get_monitors()`   | `list[Monitor]`                      |
-| `get_binds()`      | `list[Bind]`                         |
-| `get_animations()` | `tuple[list[Animation], list[dict]]` |
-| `get_devices()`    | `dict`                               |
-| `get_option(key)`  | `dict`                               |
+| Function             | Returns                              |
+|----------------------|--------------------------------------|
+| `get_monitors()`     | `list[Monitor]`                      |
+| `get_windows()`      | `list[Window]`                       |
+| `get_workspaces()`   | `list[Workspace]`                    |
+| `get_binds()`        | `list[Bind]`                         |
+| `get_animations()`   | `tuple[list[Animation], list[dict]]` |
+| `get_devices()`      | `dict`                               |
+| `get_option(key)`    | `dict`                               |
 
-All models are mutable dataclasses with a `from_dict()` classmethod for
+All models are frozen dataclasses with a `from_dict()` classmethod for
 construction from Hyprland's JSON responses.
+
+## Socket lifecycle
+
+Hyprland processes command-socket connections synchronously — an unclosed
+connection freezes the compositor until a five-second timeout expires.
+All functions in this library open and close the command socket within a
+single call, so normal usage is safe.
+
+The event socket (`connect_event_socket()`) is a separate, long-lived
+connection and is safe to keep open indefinitely.
 
 ## Requirements
 

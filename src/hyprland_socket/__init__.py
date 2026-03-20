@@ -7,6 +7,8 @@ from .commands import (
     get_devices,
     get_monitors,
     get_option,
+    get_windows,
+    get_workspaces,
     is_running,
     keyword,
     keyword_batch,
@@ -14,7 +16,7 @@ from .commands import (
 )
 from .errors import CommandError, HyprlandError, SocketError
 from .events import Event, connect_event_socket, events, parse_event_line
-from .models import Animation, Bind, Monitor
+from .models import Animation, Bind, Monitor, Window, Workspace
 
 __all__ = [
     "Animation",
@@ -24,8 +26,9 @@ __all__ = [
     "HyprlandError",
     "Monitor",
     "SocketError",
+    "Window",
+    "Workspace",
     "connect_event_socket",
-    "parse_event_line",
     "dispatch",
     "events",
     "get_animations",
@@ -33,8 +36,11 @@ __all__ = [
     "get_devices",
     "get_monitors",
     "get_option",
+    "get_windows",
+    "get_workspaces",
     "is_running",
     "keyword",
     "keyword_batch",
+    "parse_event_line",
     "reload",
 ]

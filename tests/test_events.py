@@ -14,6 +14,7 @@ class TestParseEventLine:
 
     def test_event_with_comma_data(self):
         event = parse_event_line("openwindow>>80abc,2,kitty,Alacritty")
+        assert event is not None
         assert event.name == "openwindow"
         assert event.data == "80abc,2,kitty,Alacritty"
 

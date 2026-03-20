@@ -49,9 +49,7 @@ def _send(command: str, timeout: float = 2.0) -> str:
                 break
             chunks.append(chunk)
         return b"".join(chunks).decode()
-    except SocketError:
-        raise
-    except Exception as e:
+    except OSError as e:
         raise SocketError(f"Cannot reach Hyprland socket: {e}") from e
     finally:
         sock.close()

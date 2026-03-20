@@ -5,7 +5,7 @@ from typing import Any
 
 from ._socket import _send
 from .errors import CommandError, SocketError
-from .models import Animation, Bind, Monitor
+from .models import Animation, Bind, Monitor, Window, Workspace
 
 
 def _query_json(command: str) -> Any:
@@ -108,6 +108,18 @@ def get_animations() -> tuple[list[Animation], list[dict]]:
         raise CommandError(f"Unexpected animations response format: {type(data)}")
     animations = [Animation.from_dict(a) for a in data[0]]
     return animations, data[1]
+
+
+def get_windows() -> list[Window]:
+    """Read all open windows from Hyprland."""
+    data = _query_json("clients")
+    return [Window.from_dict(w) for w in data]
+
+
+def get_workspaces() -> list[Workspace]:
+    """Read all workspaces from Hyprland."""
+    data = _query_json("workspaces")
+    return [Workspace.from_dict(w) for w in data]
 
 
 def is_running() -> bool:
