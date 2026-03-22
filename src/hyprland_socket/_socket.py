@@ -37,19 +37,17 @@ def _send(command: str, timeout: float = 2.0) -> str:
 
     Raises SocketError if the socket is unreachable.
     """
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    try:
-        sock.settimeout(timeout)
-        sock.connect(_socket_path())
-        sock.sendall(command.encode())
-        chunks = []
-        while True:
-            chunk = sock.recv(8192)
-            if not chunk:
-                break
-            chunks.append(chunk)
-        return b"".join(chunks).decode()
-    except OSError as e:
-        raise SocketError(f"Cannot reach Hyprland socket: {e}") from e
-    finally:
-        sock.close()
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+        try:
+            sock.settimeout(timeout)
+            sock.connect(_socket_path())
+            sock.sendall(command.encode())
+            chunks = []
+            while True:
+                chunk = sock.recv(8192)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+            return b"".join(chunks).decode()
+        except (OSError, UnicodeDecodeError) as e:
+            raise SocketError(f"Cannot reach Hyprland socket: {e}") from e

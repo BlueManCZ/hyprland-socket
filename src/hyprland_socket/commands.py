@@ -1,6 +1,7 @@
 """High-level command functions for Hyprland IPC."""
 
 import json
+from collections.abc import Sequence
 from typing import Any
 
 from ._socket import _send
@@ -34,7 +35,7 @@ def _format_value(value: Any) -> str:
     return str(value)
 
 
-def get_option(key: str) -> dict:
+def get_option(key: str) -> dict[str, Any]:
     """Read a live option value from Hyprland.
 
     Raises SocketError or CommandError on failure.
@@ -51,7 +52,7 @@ def keyword(key: str, value: Any) -> None:
     _check_response(response, f"keyword '{key} {value}'")
 
 
-def keyword_batch(commands: list[tuple[str, Any]]) -> None:
+def keyword_batch(commands: Sequence[tuple[str, Any]]) -> None:
     """Apply multiple keyword settings in a single batch call.
 
     Raises CommandError on failure.
@@ -68,12 +69,12 @@ def dispatch(dispatcher: str, arg: str = "") -> None:
 
     Raises CommandError if Hyprland rejects the command.
     """
-    cmd = f"/dispatch {dispatcher} {arg}".rstrip()
+    cmd = f"/dispatch {dispatcher} {arg}" if arg else f"/dispatch {dispatcher}"
     response = _send(cmd)
     _check_response(response, f"dispatch '{dispatcher} {arg}'")
 
 
-def get_devices() -> dict:
+def get_devices() -> dict[str, Any]:
     """Read all input devices from Hyprland."""
     return _query_json("devices")
 
@@ -122,10 +123,19 @@ def get_workspaces() -> list[Workspace]:
     return [Workspace.from_dict(w) for w in data]
 
 
+def get_version() -> dict[str, Any]:
+    """Read Hyprland version information.
+
+    Returns the parsed JSON dict. Key fields include ``"version"``
+    (e.g. ``"0.54.2"``) and ``"tag"`` (e.g. ``"v0.54.2"``).
+    """
+    return _query_json("version")
+
+
 def is_running() -> bool:
     """Check if a Hyprland instance is reachable."""
     try:
-        _query_json("version")
+        get_version()
         return True
     except (SocketError, CommandError):
         return False
