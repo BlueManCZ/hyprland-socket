@@ -69,7 +69,7 @@ hyprland_socket.reload()
 import hyprland_socket
 
 # Blocking iterator over compositor events
-for event in hyprland_socket.events():
+for event in hyprland_socket.listen():
     print(f"{event.name}: {event.data}")
     # e.g. "workspace: 2", "monitoradded: DP-3"
 ```

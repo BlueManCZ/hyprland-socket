@@ -141,7 +141,7 @@ class TestMonitorFromDict:
         assert m.tearing_blocked_by == ()
         assert m.direct_scanout_to == "0"
         assert m.direct_scanout_blocked_by == ()
-        assert m.color_management is None
+        assert m.color_management == "default"
         assert m.sdr_brightness == 1.0
         assert m.sdr_saturation == 1.0
         assert m.sdr_min_luminance == 0.2
@@ -162,10 +162,10 @@ class TestMonitorFromDict:
         m = Monitor.from_dict(data)
         assert m.color_management == "hdr"
 
-    def test_color_management_none_for_default(self):
+    def test_color_management_preserves_value(self):
         data = {**self.SAMPLE, "colorManagementPreset": "srgb"}
         m = Monitor.from_dict(data)
-        assert m.color_management is None
+        assert m.color_management == "srgb"
 
     def test_available_modes_as_dicts(self):
         data = {
@@ -220,7 +220,7 @@ class TestBindFromDict:
         assert b.has_description is True
         assert b.description == "Kill active window"
         assert b.submap == ""
-        assert b.submap_universal == "false"
+        assert b.submap_universal is False
         assert b.keycode == 0
 
     def test_with_arg(self):
@@ -250,7 +250,7 @@ class TestBindFromDict:
         assert b.non_consuming is False
         assert b.has_description is False
         assert b.submap == ""
-        assert b.submap_universal == "false"
+        assert b.submap_universal is False
         assert b.keycode == 0
         assert b.catch_all is False
         assert b.description == ""

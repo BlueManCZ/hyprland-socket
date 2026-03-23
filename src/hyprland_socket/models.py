@@ -1,7 +1,7 @@
 """Typed dataclasses for Hyprland IPC responses."""
 
 from dataclasses import dataclass
-from typing import Self
+from typing import Any, Self
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,21 +40,20 @@ class Monitor:
     mirror_of: str = "none"
     available_modes: tuple[str, ...] = ()
     bit_depth: int = 8
-    color_management: str | None = None
+    color_management: str = "default"
     sdr_brightness: float = 1.0
     sdr_saturation: float = 1.0
     sdr_min_luminance: float = 0.2
     sdr_max_luminance: float = 80.0
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         # Infer bit depth from pixel format
         fmt = data.get("currentFormat", "")
         bit_depth = 10 if "2101010" in fmt else 8
 
         # Color management preset
-        cm_raw = data.get("colorManagementPreset")
-        color_management = cm_raw if cm_raw and cm_raw not in ("default", "srgb") else None
+        color_management = data.get("colorManagementPreset", "default") or "default"
 
         active_ws = data.get("activeWorkspace", {})
         special_ws = data.get("specialWorkspace", {})
@@ -119,13 +118,14 @@ class Bind:
     non_consuming: bool = False
     has_description: bool = False
     submap: str = ""
-    submap_universal: str = "false"
+    submap_universal: bool = False
     keycode: int = 0
     catch_all: bool = False
     description: str = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        raw_su = data.get("submap_universal", "false")
         return cls(
             modmask=data["modmask"],
             key=data["key"],
@@ -139,7 +139,7 @@ class Bind:
             non_consuming=data.get("non_consuming", False),
             has_description=data.get("has_description", False),
             submap=data.get("submap", ""),
-            submap_universal=data.get("submap_universal", "false"),
+            submap_universal=raw_su if isinstance(raw_su, bool) else raw_su != "false",
             keycode=data.get("keycode", 0),
             catch_all=data.get("catch_all", False),
             description=data.get("description", ""),
@@ -156,7 +156,7 @@ class Animation:
     style: str = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
             name=data["name"],
             overridden=data["overridden"],
@@ -181,7 +181,7 @@ class Workspace:
     tiled_layout: str = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
             id=data["id"],
             name=data["name"],
@@ -230,7 +230,7 @@ class Window:
     stable_id: str = ""
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict[str, Any]) -> Self:
         at = data.get("at", [0, 0])
         size = data.get("size", [0, 0])
         ws = data.get("workspace", {})

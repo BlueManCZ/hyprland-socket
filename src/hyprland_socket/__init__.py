@@ -16,7 +16,7 @@ from .commands import (
     reload,
 )
 from .errors import CommandError, HyprlandError, SocketError
-from .events import Event, connect_event_socket, events, parse_event_line
+from .events import Event, connect_event_socket, listen, parse_event_line
 from .models import Animation, Bind, Monitor, Window, Workspace
 
 __all__ = [
@@ -31,7 +31,7 @@ __all__ = [
     "Workspace",
     "connect_event_socket",
     "dispatch",
-    "events",
+    "listen",
     "get_animations",
     "get_binds",
     "get_devices",

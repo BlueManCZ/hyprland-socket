@@ -42,7 +42,7 @@ def parse_event_line(line: str) -> Event | None:
     return Event(name=line, data="")
 
 
-def events(timeout: float | None = None) -> Iterator[Event]:
+def listen(timeout: float | None = None) -> Iterator[Event]:
     """Yield events from Hyprland's event socket. Blocking iterator."""
     sock = connect_event_socket(timeout)
     try:
@@ -66,5 +66,13 @@ def events(timeout: float | None = None) -> Iterator[Event]:
                 event = parse_event_line(line)
                 if event is not None:
                     yield event
+        # Process any remaining data after socket closes (no trailing newline)
+        if buf:
+            try:
+                event = parse_event_line(buf.decode())
+            except UnicodeDecodeError:
+                event = None
+            if event is not None:
+                yield event
     finally:
         sock.close()

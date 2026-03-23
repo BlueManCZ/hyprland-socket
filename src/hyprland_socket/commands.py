@@ -71,7 +71,7 @@ def dispatch(dispatcher: str, arg: str = "") -> None:
     """
     cmd = f"/dispatch {dispatcher} {arg}" if arg else f"/dispatch {dispatcher}"
     response = _send(cmd)
-    _check_response(response, f"dispatch '{dispatcher} {arg}'")
+    _check_response(response, f"dispatch '{dispatcher}{' ' + arg if arg else ''}'")
 
 
 def get_devices() -> dict[str, Any]:
