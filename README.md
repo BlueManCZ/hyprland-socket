@@ -32,13 +32,15 @@ if hyprland_socket.is_running():
     for ws in hyprland_socket.get_workspaces():
         print(f"Workspace {ws.name}: {ws.windows} windows on {ws.monitor}")
 
-    # Read a live option
+    # Read a live option and extract its typed value
     option = hyprland_socket.get_option("general:gaps_in")
-    print(option)
+    gaps = hyprland_socket.extract_ipc_value(option, hint=0)
+    print(f"gaps_in = {gaps}")
 
     # Read keybinds
     for bind in hyprland_socket.get_binds():
-        print(f"{bind.key} -> {bind.dispatcher} {bind.arg}")
+        mods = hyprland_socket.modmask_to_str(bind.modmask)
+        print(f"{mods} + {bind.key} -> {bind.dispatcher} {bind.arg}")
 ```
 
 ### Apply settings
@@ -103,15 +105,16 @@ except CommandError as e:
 
 ## Models
 
-| Function             | Returns                              |
-|----------------------|--------------------------------------|
-| `get_monitors()`     | `list[Monitor]`                      |
-| `get_windows()`      | `list[Window]`                       |
-| `get_workspaces()`   | `list[Workspace]`                    |
-| `get_binds()`        | `list[Bind]`                         |
-| `get_animations()`   | `tuple[list[Animation], list[dict]]` |
-| `get_devices()`      | `dict`                               |
-| `get_option(key)`    | `dict`                               |
+| Function           | Returns                                      |
+|--------------------|----------------------------------------------|
+| `get_monitors()`   | `list[Monitor]`                              |
+| `get_windows()`    | `list[Window]`                               |
+| `get_workspaces()` | `list[Workspace]`                            |
+| `get_binds()`      | `list[Bind]`                                 |
+| `get_animations()` | `tuple[list[Animation], list[BezierCurve]]`  |
+| `get_devices()`    | `dict`                                       |
+| `get_option(key)`  | `dict` (use `extract_ipc_value()` to unwrap) |
+| `get_version()`    | `Version`                                    |
 
 All models are frozen dataclasses with a `from_dict()` classmethod for
 construction from Hyprland's JSON responses.

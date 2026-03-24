@@ -5,6 +5,7 @@ from hyprland_socket.models import (
     BezierCurve,
     Bind,
     Monitor,
+    Version,
     Window,
     Workspace,
     modmask_to_str,
@@ -475,3 +476,43 @@ class TestWindowFromDict:
         assert w.xdg_description == ""
         assert w.content_type == "none"
         assert w.stable_id == ""
+
+
+class TestVersionFromDict:
+    SAMPLE = {
+        "branch": "main",
+        "commit": "abc123def456",
+        "dirty": False,
+        "commit_message": "fix something",
+        "commit_date": "2026-03-20",
+        "tag": "v0.54.2",
+        "commits": 42,
+        "version": "0.54.2",
+        "flags": ["legacyrenderer"],
+    }
+
+    def test_full(self):
+        v = Version.from_dict(self.SAMPLE)
+        assert v.version == "0.54.2"
+        assert v.tag == "v0.54.2"
+        assert v.branch == "main"
+        assert v.commit == "abc123def456"
+        assert v.dirty is False
+        assert v.commit_message == "fix something"
+        assert v.commit_date == "2026-03-20"
+        assert v.commits == 42
+        assert v.flags == ("legacyrenderer",)
+
+    def test_minimal(self):
+        v = Version.from_dict({"version": "0.54.2"})
+        assert v.version == "0.54.2"
+        assert v.tag == ""
+        assert v.branch == ""
+        assert v.commit == ""
+        assert v.dirty is False
+        assert v.commits == 0
+        assert v.flags == ()
+
+    def test_empty(self):
+        v = Version.from_dict({})
+        assert v.version == ""

@@ -15,7 +15,7 @@ def _try_custom(data: dict[str, Any], convert: Callable[[str], Any]) -> Any:
         return None
 
 
-def extract_ipc_value(data: dict, hint: Any = None) -> Any:
+def extract_ipc_value(data: dict[str, Any], hint: Any = None) -> Any:
     """Extract a typed value from a ``hyprctl getoption`` JSON response.
 
     Hyprland returns values in different fields depending on the type:

@@ -303,3 +303,30 @@ class Window:
             content_type=data.get("contentType", "none"),
             stable_id=data.get("stableId", ""),
         )
+
+
+@dataclass(frozen=True, slots=True)
+class Version:
+    version: str
+    tag: str = ""
+    branch: str = ""
+    commit: str = ""
+    dirty: bool = False
+    commit_message: str = ""
+    commit_date: str = ""
+    commits: int = 0
+    flags: tuple[str, ...] = ()
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            version=data.get("version", ""),
+            tag=data.get("tag", ""),
+            branch=data.get("branch", ""),
+            commit=data.get("commit", ""),
+            dirty=data.get("dirty", False),
+            commit_message=data.get("commit_message", ""),
+            commit_date=data.get("commit_date", ""),
+            commits=data.get("commits", 0),
+            flags=tuple(data.get("flags", [])),
+        )

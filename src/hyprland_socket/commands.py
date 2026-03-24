@@ -6,7 +6,10 @@ from typing import Any
 
 from ._socket import _send
 from .errors import CommandError, HyprlandError
-from .models import Animation, BezierCurve, Bind, Monitor, Window, Workspace
+from .models import Animation, BezierCurve, Bind, Monitor, Version, Window, Workspace
+
+# Hyprland separates batch command results with triple newlines.
+_BATCH_SEPARATOR = "\n\n\n"
 
 
 def _query_json(command: str) -> Any:
@@ -64,14 +67,14 @@ def keyword_batch(commands: Sequence[tuple[str, Any]]) -> list[str | None]:
         return []
     batch = ";".join(f"keyword {key} {_format_value(value)}" for key, value in commands)
     response = _send(f"[[BATCH]]{batch}", timeout=5.0)
-    parts = response.split("\n\n\n")
+    parts = response.split(_BATCH_SEPARATOR)
     results: list[str | None] = []
     for i, cmd in enumerate(commands):
         if i < len(parts):
             msg = parts[i].strip()
             results.append(None if msg.lower() == "ok" else msg)
         else:
-            results.append(None)
+            results.append("no response from compositor")
     return results
 
 
@@ -94,9 +97,10 @@ def get_devices() -> dict[str, Any]:
 def reload() -> None:
     """Tell Hyprland to reload its config.
 
-    Raises SocketError if unreachable.
+    Raises SocketError if unreachable, CommandError if rejected.
     """
-    _send("/reload")
+    response = _send("/reload")
+    _check_response(response, "reload")
 
 
 def get_binds() -> list[Bind]:
@@ -136,13 +140,10 @@ def get_workspaces() -> list[Workspace]:
     return [Workspace.from_dict(w) for w in data]
 
 
-def get_version() -> dict[str, Any]:
-    """Read Hyprland version information.
-
-    Returns the parsed JSON dict. Key fields include ``"version"``
-    (e.g. ``"0.54.2"``) and ``"tag"`` (e.g. ``"v0.54.2"``).
-    """
-    return _query_json("version")
+def get_version() -> Version:
+    """Read Hyprland version information."""
+    data = _query_json("version")
+    return Version.from_dict(data)
 
 
 def is_running() -> bool:
