@@ -31,7 +31,12 @@ def _check_response(response: str, label: str) -> None:
 
 
 def _format_value(value: Any) -> str:
-    """Format a value for a Hyprland keyword command."""
+    """Format a value for a Hyprland keyword command.
+
+    Minimal IPC-only conversion (bool → "0"/"1").  For config-file
+    serialization (which additionally normalises gradient hex tokens),
+    see ``hyprland_config.value_to_conf``.
+    """
     if isinstance(value, bool):
         return str(int(value))
     return str(value)
@@ -69,7 +74,7 @@ def keyword_batch(commands: Sequence[tuple[str, Any]]) -> list[str | None]:
     response = _send(f"[[BATCH]]{batch}", timeout=5.0)
     parts = response.split(_BATCH_SEPARATOR)
     results: list[str | None] = []
-    for i, cmd in enumerate(commands):
+    for i in range(len(commands)):
         if i < len(parts):
             msg = parts[i].strip()
             results.append(None if msg.lower() == "ok" else msg)
@@ -83,10 +88,9 @@ def dispatch(dispatcher: str, arg: str = "") -> None:
 
     Raises CommandError if Hyprland rejects the command.
     """
-    cmd = f"/dispatch {dispatcher} {arg}" if arg else f"/dispatch {dispatcher}"
-    response = _send(cmd)
-    label = f"dispatch '{dispatcher} {arg}'" if arg else f"dispatch '{dispatcher}'"
-    _check_response(response, label)
+    suffix = f"{dispatcher} {arg}" if arg else dispatcher
+    response = _send(f"/dispatch {suffix}")
+    _check_response(response, f"dispatch '{suffix}'")
 
 
 def get_devices() -> dict[str, Any]:

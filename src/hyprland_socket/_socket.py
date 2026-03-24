@@ -1,31 +1,37 @@
 """Low-level Unix socket communication with Hyprland."""
 
+import functools
 import os
 import socket
+from pathlib import Path
 
 from .errors import SocketError
 
 
-def _hypr_dir() -> str:
+@functools.cache
+def _hypr_dir() -> Path:
     """Return the Hyprland instance directory.
 
     Raises SocketError if HYPRLAND_INSTANCE_SIGNATURE is not set.
+    Cached because the instance signature does not change within a session.
     """
     sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
     if not sig:
         raise SocketError("HYPRLAND_INSTANCE_SIGNATURE is not set — is Hyprland running?")
     runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
-    return os.path.join(runtime, "hypr", sig)
+    return Path(runtime) / "hypr" / sig
 
 
+@functools.cache
 def _socket_path() -> str:
     """Return the Hyprland command socket path."""
-    return os.path.join(_hypr_dir(), ".socket.sock")
+    return str(_hypr_dir() / ".socket.sock")
 
 
+@functools.cache
 def _event_socket_path() -> str:
     """Return the Hyprland event socket path (socket2)."""
-    return os.path.join(_hypr_dir(), ".socket2.sock")
+    return str(_hypr_dir() / ".socket2.sock")
 
 
 def _send(command: str, timeout: float = 2.0) -> str:
