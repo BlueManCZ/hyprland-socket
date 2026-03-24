@@ -15,17 +15,17 @@ def _hypr_dir() -> str:
     if not sig:
         raise SocketError("HYPRLAND_INSTANCE_SIGNATURE is not set — is Hyprland running?")
     runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
-    return f"{runtime}/hypr/{sig}"
+    return os.path.join(runtime, "hypr", sig)
 
 
 def _socket_path() -> str:
     """Return the Hyprland command socket path."""
-    return f"{_hypr_dir()}/.socket.sock"
+    return os.path.join(_hypr_dir(), ".socket.sock")
 
 
 def _event_socket_path() -> str:
     """Return the Hyprland event socket path (socket2)."""
-    return f"{_hypr_dir()}/.socket2.sock"
+    return os.path.join(_hypr_dir(), ".socket2.sock")
 
 
 def _send(command: str, timeout: float = 2.0) -> str:

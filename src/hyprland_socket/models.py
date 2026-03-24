@@ -3,6 +3,18 @@
 from dataclasses import dataclass
 from typing import Any, Self
 
+MOD_BITS: dict[str, int] = {
+    "SUPER": 64,
+    "SHIFT": 1,
+    "CTRL": 4,
+    "ALT": 8,
+}
+
+
+def modmask_to_str(mask: int) -> str:
+    """Convert a modifier bitmask to a human-readable string."""
+    return " + ".join(name for name, bit in MOD_BITS.items() if mask & bit)
+
 
 @dataclass(frozen=True, slots=True)
 class Monitor:
@@ -125,7 +137,8 @@ class Bind:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
-        raw_su = data.get("submap_universal", "false")
+        raw = data.get("submap_universal", "false")
+        submap_universal = raw if isinstance(raw, bool) else raw != "false"
         return cls(
             modmask=data["modmask"],
             key=data["key"],
@@ -139,7 +152,7 @@ class Bind:
             non_consuming=data.get("non_consuming", False),
             has_description=data.get("has_description", False),
             submap=data.get("submap", ""),
-            submap_universal=raw_su if isinstance(raw_su, bool) else raw_su != "false",
+            submap_universal=submap_universal,
             keycode=data.get("keycode", 0),
             catch_all=data.get("catch_all", False),
             description=data.get("description", ""),
@@ -165,6 +178,30 @@ class Animation:
             bezier=data["bezier"],
             style=data.get("style", ""),
         )
+
+
+@dataclass(frozen=True, slots=True)
+class BezierCurve:
+    name: str
+    x0: float
+    y0: float
+    x1: float
+    y1: float
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            name=data["name"],
+            x0=data.get("X0", 0.0),
+            y0=data.get("Y0", 0.0),
+            x1=data.get("X1", 1.0),
+            y1=data.get("Y1", 1.0),
+        )
+
+    @property
+    def points(self) -> tuple[float, float, float, float]:
+        """Return control points as a (x0, y0, x1, y1) tuple."""
+        return (self.x0, self.y0, self.x1, self.y1)
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,6 +1,27 @@
 """Tests for model construction from Hyprland JSON dicts."""
 
-from hyprland_socket.models import Animation, Bind, Monitor, Window, Workspace
+from hyprland_socket.models import (
+    Animation,
+    BezierCurve,
+    Bind,
+    Monitor,
+    Window,
+    Workspace,
+    modmask_to_str,
+)
+
+
+class TestModmask:
+    def test_single_mod(self):
+        assert modmask_to_str(64) == "SUPER"
+
+    def test_multiple_mods(self):
+        result = modmask_to_str(64 | 1)
+        assert "SUPER" in result
+        assert "SHIFT" in result
+
+    def test_empty(self):
+        assert modmask_to_str(0) == ""
 
 
 class TestMonitorFromDict:
@@ -286,6 +307,27 @@ class TestAnimationFromDict:
             }
         )
         assert a.style == ""
+
+
+class TestBezierCurveFromDict:
+    def test_basic(self):
+        c = BezierCurve.from_dict({"name": "easeOut", "X0": 0.0, "Y0": 0.5, "X1": 0.8, "Y1": 1.0})
+        assert c.name == "easeOut"
+        assert c.x0 == 0.0
+        assert c.y0 == 0.5
+        assert c.x1 == 0.8
+        assert c.y1 == 1.0
+
+    def test_points_property(self):
+        c = BezierCurve.from_dict({"name": "linear", "X0": 0.1, "Y0": 0.2, "X1": 0.3, "Y1": 0.4})
+        assert c.points == (0.1, 0.2, 0.3, 0.4)
+
+    def test_missing_optional_fields(self):
+        c = BezierCurve.from_dict({"name": "default"})
+        assert c.x0 == 0.0
+        assert c.y0 == 0.0
+        assert c.x1 == 1.0
+        assert c.y1 == 1.0
 
 
 class TestWorkspaceFromDict:

@@ -5,8 +5,8 @@ from collections.abc import Sequence
 from typing import Any
 
 from ._socket import _send
-from .errors import CommandError, SocketError
-from .models import Animation, Bind, Monitor, Window, Workspace
+from .errors import CommandError, HyprlandError
+from .models import Animation, BezierCurve, Bind, Monitor, Window, Workspace
 
 
 def _query_json(command: str) -> Any:
@@ -19,12 +19,11 @@ def _query_json(command: str) -> Any:
 
 
 def _check_response(response: str, label: str) -> None:
-    """Validate a command response from Hyprland.
+    """Validate a single-command response from Hyprland.
 
-    Raises CommandError if the response indicates failure.
+    Raises CommandError if the response is not ``"ok"``.
     """
-    output = response.strip().lower()
-    if output not in ("ok", ""):
+    if response.strip().lower() != "ok":
         raise CommandError(f"{label} rejected: {response.strip()}")
 
 
@@ -52,16 +51,28 @@ def keyword(key: str, value: Any) -> None:
     _check_response(response, f"keyword '{key} {value}'")
 
 
-def keyword_batch(commands: Sequence[tuple[str, Any]]) -> None:
+def keyword_batch(commands: Sequence[tuple[str, Any]]) -> list[str | None]:
     """Apply multiple keyword settings in a single batch call.
 
-    Raises CommandError on failure.
+    Returns a list with one entry per command: ``None`` for success,
+    or an error message string for failure. The list length always
+    matches the input length.
+
+    Raises ``SocketError`` if the Hyprland socket is unreachable.
     """
     if not commands:
-        return
+        return []
     batch = ";".join(f"keyword {key} {_format_value(value)}" for key, value in commands)
     response = _send(f"[[BATCH]]{batch}", timeout=5.0)
-    _check_response(response, f"keyword_batch ({len(commands)} commands)")
+    parts = response.split("\n\n\n")
+    results: list[str | None] = []
+    for i, cmd in enumerate(commands):
+        if i < len(parts):
+            msg = parts[i].strip()
+            results.append(None if msg.lower() == "ok" else msg)
+        else:
+            results.append(None)
+    return results
 
 
 def dispatch(dispatcher: str, arg: str = "") -> None:
@@ -71,7 +82,8 @@ def dispatch(dispatcher: str, arg: str = "") -> None:
     """
     cmd = f"/dispatch {dispatcher} {arg}" if arg else f"/dispatch {dispatcher}"
     response = _send(cmd)
-    _check_response(response, f"dispatch '{dispatcher}{' ' + arg if arg else ''}'")
+    label = f"dispatch '{dispatcher} {arg}'" if arg else f"dispatch '{dispatcher}'"
+    _check_response(response, label)
 
 
 def get_devices() -> dict[str, Any]:
@@ -99,7 +111,7 @@ def get_monitors() -> list[Monitor]:
     return [Monitor.from_dict(m) for m in data]
 
 
-def get_animations() -> tuple[list[Animation], list[dict]]:
+def get_animations() -> tuple[list[Animation], list[BezierCurve]]:
     """Read all animations and bezier curves from Hyprland.
 
     Returns (animations_list, curves_list).
@@ -108,7 +120,8 @@ def get_animations() -> tuple[list[Animation], list[dict]]:
     if not isinstance(data, list) or len(data) != 2:
         raise CommandError(f"Unexpected animations response format: {type(data)}")
     animations = [Animation.from_dict(a) for a in data[0]]
-    return animations, data[1]
+    curves = [BezierCurve.from_dict(c) for c in data[1]]
+    return animations, curves
 
 
 def get_windows() -> list[Window]:
@@ -137,5 +150,5 @@ def is_running() -> bool:
     try:
         get_version()
         return True
-    except (SocketError, CommandError):
+    except HyprlandError:
         return False
