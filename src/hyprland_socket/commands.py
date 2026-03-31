@@ -33,9 +33,7 @@ def _check_response(response: str, label: str) -> None:
 def _format_value(value: Any) -> str:
     """Format a value for a Hyprland keyword command.
 
-    Minimal IPC-only conversion (bool → "0"/"1").  For config-file
-    serialization (which additionally normalises gradient hex tokens),
-    see ``hyprland_config.value_to_conf``.
+    Minimal IPC-only conversion (bool → "0"/"1").
     """
     if isinstance(value, bool):
         return str(int(value))
@@ -74,7 +72,7 @@ def keyword_batch(commands: Sequence[tuple[str, Any]]) -> list[str | None]:
     response = _send(f"[[BATCH]]{batch}", timeout=5.0)
     parts = response.split(_BATCH_SEPARATOR)
     results: list[str | None] = []
-    for i in range(len(commands)):
+    for i, _ in enumerate(commands):
         if i < len(parts):
             msg = parts[i].strip()
             results.append(None if msg.lower() == "ok" else msg)

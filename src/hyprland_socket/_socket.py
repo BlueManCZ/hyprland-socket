@@ -22,13 +22,11 @@ def _hypr_dir() -> Path:
     return Path(runtime) / "hypr" / sig
 
 
-@functools.cache
 def _socket_path() -> str:
     """Return the Hyprland command socket path."""
     return str(_hypr_dir() / ".socket.sock")
 
 
-@functools.cache
 def _event_socket_path() -> str:
     """Return the Hyprland event socket path (socket2)."""
     return str(_hypr_dir() / ".socket2.sock")

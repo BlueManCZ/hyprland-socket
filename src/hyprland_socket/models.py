@@ -89,23 +89,23 @@ class Monitor:
             active_workspace_name=active_ws.get("name", ""),
             special_workspace_id=special_ws.get("id", 0),
             special_workspace_name=special_ws.get("name", ""),
-            reserved=tuple(data.get("reserved", [])),
+            reserved=tuple(data.get("reserved") or []),
             transform=data.get("transform", 0),
             focused=data.get("focused", False),
             dpms_status=data.get("dpmsStatus", True),
             vrr=data.get("vrr", False),
             solitary=data.get("solitary", "0"),
-            solitary_blocked_by=tuple(data.get("solitaryBlockedBy", [])),
+            solitary_blocked_by=tuple(data.get("solitaryBlockedBy") or []),
             actively_tearing=data.get("activelyTearing", False),
-            tearing_blocked_by=tuple(data.get("tearingBlockedBy", [])),
+            tearing_blocked_by=tuple(data.get("tearingBlockedBy") or []),
             direct_scanout_to=data.get("directScanoutTo", "0"),
-            direct_scanout_blocked_by=tuple(data.get("directScanoutBlockedBy", [])),
+            direct_scanout_blocked_by=tuple(data.get("directScanoutBlockedBy") or []),
             disabled=data.get("disabled", False),
             current_format=data.get("currentFormat", ""),
             mirror_of=data.get("mirrorOf", "none"),
             available_modes=tuple(
                 m if isinstance(m, str) else f"{m['width']}x{m['height']}@{m['refreshRate']:.2f}Hz"
-                for m in data.get("availableModes", [])
+                for m in (data.get("availableModes") or [])
             ),
             bit_depth=bit_depth,
             color_management=color_management,

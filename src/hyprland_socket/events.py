@@ -46,33 +46,13 @@ def listen(timeout: float | None = None) -> Iterator[Event]:
     """Yield events from Hyprland's event socket. Blocking iterator."""
     sock = connect_event_socket(timeout)
     try:
-        buf = bytearray()
-        while True:
-            try:
-                chunk = sock.recv(4096)
-            except TimeoutError:
-                return
-            except OSError as e:
-                raise SocketError(f"Hyprland event socket error: {e}") from e
-            if not chunk:
-                break
-            buf.extend(chunk)
-            while b"\n" in buf:
-                line_bytes, _, buf = buf.partition(b"\n")
-                try:
-                    line = line_bytes.decode()
-                except UnicodeDecodeError:
-                    continue
-                event = parse_event_line(line)
-                if event is not None:
-                    yield event
-        # Process any remaining data after socket closes (no trailing newline)
-        if buf:
-            try:
-                event = parse_event_line(buf.decode())
-            except UnicodeDecodeError:
-                event = None
+        for line in sock.makefile(encoding="utf-8", errors="ignore"):
+            event = parse_event_line(line)
             if event is not None:
                 yield event
+    except TimeoutError:
+        return
+    except OSError as e:
+        raise SocketError(f"Hyprland event socket error: {e}") from e
     finally:
         sock.close()
