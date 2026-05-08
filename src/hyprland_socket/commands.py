@@ -91,6 +91,17 @@ def dispatch(dispatcher: str, arg: str = "") -> None:
     _check_response(response, f"dispatch '{suffix}'")
 
 
+def set_cursor(theme: str, size: int) -> None:
+    """Set the live cursor theme and size.
+
+    Equivalent to ``hyprctl setcursor <theme> <size>``.
+
+    Raises CommandError if Hyprland rejects the command.
+    """
+    response = _send(f"/setcursor {theme} {size}")
+    _check_response(response, f"setcursor '{theme} {size}'")
+
+
 def get_devices() -> dict[str, Any]:
     """Read all input devices from Hyprland."""
     return _query_json("devices")

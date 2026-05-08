@@ -14,6 +14,7 @@ from .commands import (
     keyword,
     keyword_batch,
     reload,
+    set_cursor,
 )
 from .errors import CommandError, HyprlandError, SocketError
 from .events import Event, connect_event_socket, listen, parse_event_line
@@ -61,4 +62,5 @@ __all__ = [
     "modmask_to_str",
     "parse_event_line",
     "reload",
+    "set_cursor",
 ]
