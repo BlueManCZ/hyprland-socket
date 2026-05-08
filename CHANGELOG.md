@@ -5,11 +5,15 @@ All notable changes to hyprland-socket will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.10.0] - 2026-05-08
 
 ### Added
 
 - `set_cursor(theme, size)` to set the live cursor theme and size (equivalent to `hyprctl setcursor`)
+
+### Fixed
+
+- `modmask_to_str()` now recognises the `CAPS`, `MOD2`, `MOD3`, and `MOD5` modifier bits, which previously dropped from the output. https://github.com/BlueManCZ/hyprmod/issues/27
 
 ## [0.9.1] - 2026-03-31
 
@@ -153,6 +157,7 @@ Initial release — typed Python library for Hyprland IPC via Unix sockets.
 - Typed dataclasses: `Monitor`, `Bind`, `Animation`, `Event`
 - Exception-based error handling: `ConnectionError`, `CommandError`
 
+[0.10.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.10.0
 [0.9.1]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.9.1
 [0.9.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.9.0
 [0.8.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.8.0

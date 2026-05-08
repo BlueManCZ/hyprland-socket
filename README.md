@@ -61,6 +61,9 @@ hyprland_socket.keyword_batch([
 # Execute a dispatcher
 hyprland_socket.dispatch("workspace", "2")
 
+# Set the live cursor theme and size
+hyprland_socket.set_cursor("Bibata-Modern-Classic", 24)
+
 # Reload config from disk
 hyprland_socket.reload()
 ```

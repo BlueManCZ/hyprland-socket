@@ -8,6 +8,10 @@ MOD_BITS: dict[str, int] = {
     "SHIFT": 1,
     "CTRL": 4,
     "ALT": 8,
+    "CAPS": 2,
+    "MOD2": 16,
+    "MOD3": 32,
+    "MOD5": 128,
 }
 
 

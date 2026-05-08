@@ -24,6 +24,24 @@ class TestModmask:
     def test_empty(self):
         assert modmask_to_str(0) == ""
 
+    def test_caps(self):
+        assert modmask_to_str(2) == "CAPS"
+
+    def test_mod2(self):
+        assert modmask_to_str(16) == "MOD2"
+
+    def test_mod3(self):
+        # Where Hyper_L lands under standard xkeyboard-config layouts
+        assert modmask_to_str(32) == "MOD3"
+
+    def test_mod5(self):
+        assert modmask_to_str(128) == "MOD5"
+
+    def test_mod3_combined_with_super(self):
+        result = modmask_to_str(32 | 64)
+        assert "MOD3" in result
+        assert "SUPER" in result
+
 
 class TestMonitorFromDict:
     SAMPLE = {
