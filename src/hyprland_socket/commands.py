@@ -51,10 +51,33 @@ def get_option(key: str) -> dict[str, Any]:
 def keyword(key: str, value: Any) -> None:
     """Apply a setting live to the running compositor.
 
+    Hyprland 0.55.0+ rejects this for Lua-mode configs ("keyword can't
+    work with non-legacy parsers. Use eval."). Use :func:`eval_lua`
+    instead when ``hyprctl status`` reports ``configProvider: lua``.
+
     Raises CommandError if Hyprland rejects the command.
     """
     response = _send(f"/keyword {key} {_format_value(value)}")
     _check_response(response, f"keyword '{key} {value}'")
+
+
+def eval_lua(code: str) -> None:
+    """Run a Lua snippet through Hyprland's Lua config manager.
+
+    The live-apply path for Lua-mode configs (Hyprland 0.55.0+); the
+    equivalent of :func:`keyword` for the new format. The snippet runs
+    in the same Lua state Hyprland used to load ``hyprland.lua``, so
+    calling e.g. ``hl.config({ general = { gaps_in = 5 } })`` mutates the
+    running compositor immediately.
+
+    Hyprland responds with ``ok`` on success or a Lua error message;
+    a non-``ok`` response surfaces as :class:`CommandError`. Refuses
+    when Hyprland is in Hyprlang mode ("eval is only supported with
+    the lua config manager") — pair this with a mode check or fall
+    back to :func:`keyword` for legacy configs.
+    """
+    response = _send(f"/eval {code}")
+    _check_response(response, "eval")
 
 
 def keyword_batch(commands: Sequence[tuple[str, Any]]) -> list[str | None]:
@@ -166,3 +189,14 @@ def is_running() -> bool:
         return True
     except HyprlandError:
         return False
+
+
+def get_status() -> dict[str, Any]:
+    """Read internal compositor status (``hyprctl status``).
+
+    The interesting key for clients targeting Hyprland 0.55.0+ is
+    ``configProvider``: ``"lua"`` when Hyprland loaded ``hyprland.lua``
+    (in which case :func:`keyword` is rejected — use :func:`eval_lua`),
+    ``"legacy"`` for the classic Hyprlang format.
+    """
+    return _query_json("status")

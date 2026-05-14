@@ -5,6 +5,13 @@ All notable changes to hyprland-socket will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-05-14
+
+### Added
+
+- `eval_lua(code)` to execute Lua snippets through Hyprland's Lua config manager (Hyprland 0.55.0+)
+- `get_status()` to query internal compositor status, including config provider type (`lua` vs `legacy`)
+
 ## [0.10.0] - 2026-05-08
 
 ### Added
@@ -157,6 +164,7 @@ Initial release — typed Python library for Hyprland IPC via Unix sockets.
 - Typed dataclasses: `Monitor`, `Bind`, `Animation`, `Event`
 - Exception-based error handling: `ConnectionError`, `CommandError`
 
+[0.11.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.11.0
 [0.10.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.10.0
 [0.9.1]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.9.1
 [0.9.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.9.0
