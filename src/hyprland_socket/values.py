@@ -5,8 +5,16 @@ from typing import Any
 
 
 def _try_custom(data: dict[str, Any], convert: Callable[[str], Any]) -> Any:
-    """Try to extract and convert the first token from the ``custom`` field."""
+    """Extract and convert the first token from the custom-shorthand field.
+
+    Hyprland 0.54.x and earlier returned this as ``"custom": "5 5 5 5"``;
+    0.55.0 renamed it to ``"css"`` for the CSS-shorthand types (gaps,
+    rounding power, etc.). We accept either so the same code path works
+    across both compositor versions.
+    """
     raw = data.get("custom")
+    if raw is None:
+        raw = data.get("css")
     if raw is None:
         return None
     try:
@@ -23,7 +31,8 @@ def extract_ipc_value(data: dict[str, Any], hint: Any = None) -> Any:
     - int/bool: ``{"int": N}``
     - float: ``{"float": F}``
     - str: ``{"str": S}``
-    - custom types (e.g. gaps): ``{"custom": "5 5 5 5"}``
+    - CSS-shorthand types (e.g. gaps): ``{"custom": "5 5 5 5"}`` on
+      Hyprland 0.54.x and earlier, ``{"css": "5 5 5 5"}`` on 0.55+
     - vec2: ``{"vec2": [x, y]}``
 
     *hint* determines which field to prefer and how to coerce the result.
@@ -31,8 +40,9 @@ def extract_ipc_value(data: dict[str, Any], hint: Any = None) -> Any:
     ``hint=0`` for int, ``hint=0.0`` for float, ``hint=""`` for str,
     ``hint=True`` for bool).
 
-    Falls back to parsing the ``custom`` field when the expected typed field
-    is absent (e.g. custom gap types report via ``custom`` instead of ``int``).
+    Falls back to parsing the CSS-shorthand field when the expected typed
+    field is absent (e.g. custom gap types report via ``custom``/``css``
+    instead of ``int``).
     """
     if isinstance(hint, bool):
         if "int" in data:
@@ -60,9 +70,11 @@ def extract_ipc_value(data: dict[str, Any], hint: Any = None) -> Any:
             return f"{v[0]} {v[1]}"
         if "custom" in data:
             return data["custom"]
+        if "css" in data:
+            return data["css"]
         return hint
     # No hint — return the first non-null typed field
-    for field in ("int", "float", "str", "custom"):
+    for field in ("int", "float", "str", "custom", "css"):
         if field in data:
             val = data[field]
             if field == "str" and val == "[[EMPTY]]":

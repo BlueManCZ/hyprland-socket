@@ -5,6 +5,12 @@ All notable changes to hyprland-socket will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-05-15
+
+### Fixed
+
+- `extract_ipc_value()` now accepts the `css` field that Hyprland 0.55+ uses for CSS-shorthand types (e.g. `gaps_out`, `rounding_power`), which was previously named `custom`. Both fields are recognised so the same code path works across Hyprland 0.54.x and 0.55+; if both are present, `custom` takes priority.
+
 ## [0.11.0] - 2026-05-14
 
 ### Added
@@ -164,6 +170,7 @@ Initial release — typed Python library for Hyprland IPC via Unix sockets.
 - Typed dataclasses: `Monitor`, `Bind`, `Animation`, `Event`
 - Exception-based error handling: `ConnectionError`, `CommandError`
 
+[0.12.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.12.0
 [0.11.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.11.0
 [0.10.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.10.0
 [0.9.1]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.9.1

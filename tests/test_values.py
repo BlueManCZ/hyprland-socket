@@ -10,6 +10,11 @@ class TestExtractIpcValue:
     def test_int_from_custom_field(self):
         assert extract_ipc_value({"custom": "10 20 30"}, hint=0) == 10
 
+    def test_int_from_css_field(self):
+        # Hyprland 0.55+ reports CSS-shorthand types via the ``css`` field
+        # instead of ``custom`` (e.g. ``gaps_out`` returning "10 10 10 10").
+        assert extract_ipc_value({"css": "10 20 30 40"}, hint=0) == 10
+
     def test_int_fallback(self):
         assert extract_ipc_value({}, hint=42) == 42
 
@@ -18,6 +23,9 @@ class TestExtractIpcValue:
 
     def test_float_from_custom(self):
         assert extract_ipc_value({"custom": "1.5 extra"}, hint=0.0) == 1.5
+
+    def test_float_from_css(self):
+        assert extract_ipc_value({"css": "1.5 2.5"}, hint=0.0) == 1.5
 
     def test_float_fallback(self):
         assert extract_ipc_value({}, hint=3.14) == 3.14
@@ -28,6 +36,9 @@ class TestExtractIpcValue:
 
     def test_bool_from_custom(self):
         assert extract_ipc_value({"custom": "1"}, hint=False) is True
+
+    def test_bool_from_css(self):
+        assert extract_ipc_value({"css": "1"}, hint=False) is True
 
     def test_bool_fallback(self):
         assert extract_ipc_value({}, hint=True) is True
@@ -46,6 +57,14 @@ class TestExtractIpcValue:
 
     def test_str_from_custom(self):
         assert extract_ipc_value({"custom": "5 5 5 5"}, hint="") == "5 5 5 5"
+
+    def test_str_from_css(self):
+        assert extract_ipc_value({"css": "5 5 5 5"}, hint="") == "5 5 5 5"
+
+    def test_custom_takes_priority_over_css(self):
+        # If both somehow appear, prefer the legacy field so behavior
+        # stays stable for older Hyprland versions that emit ``custom``.
+        assert extract_ipc_value({"custom": "1", "css": "2"}, hint=0) == 1
 
     def test_str_fallback(self):
         assert extract_ipc_value({}, hint="default") == "default"
