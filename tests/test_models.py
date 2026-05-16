@@ -295,6 +295,18 @@ class TestBindFromDict:
         assert b.catch_all is False
         assert b.description == ""
 
+    def test_submap_universal_variants(self):
+        base = {"modmask": 0, "key": "A", "dispatcher": "exec", "arg": ""}
+        assert Bind.from_dict({**base, "submap_universal": "true"}).submap_universal is True
+        assert Bind.from_dict({**base, "submap_universal": "TRUE"}).submap_universal is True
+        assert Bind.from_dict({**base, "submap_universal": "false"}).submap_universal is False
+        assert Bind.from_dict({**base, "submap_universal": True}).submap_universal is True
+        assert Bind.from_dict({**base, "submap_universal": False}).submap_universal is False
+        # Unexpected payloads must default to False, not flip to True
+        assert Bind.from_dict({**base, "submap_universal": None}).submap_universal is False
+        assert Bind.from_dict({**base, "submap_universal": ""}).submap_universal is False
+        assert Bind.from_dict({**base, "submap_universal": "0"}).submap_universal is False
+
 
 class TestAnimationFromDict:
     def test_basic(self):
@@ -494,6 +506,16 @@ class TestWindowFromDict:
         assert w.xdg_description == ""
         assert w.content_type == "none"
         assert w.stable_id == ""
+
+    def test_null_at_size_workspace(self):
+        # Hyprland can send explicit null for these fields; previously crashed on None[0]
+        w = Window.from_dict({"address": "0x1", "at": None, "size": None, "workspace": None})
+        assert w.x == 0
+        assert w.y == 0
+        assert w.width == 0
+        assert w.height == 0
+        assert w.workspace_id == -1
+        assert w.workspace_name == ""
 
 
 class TestVersionFromDict:

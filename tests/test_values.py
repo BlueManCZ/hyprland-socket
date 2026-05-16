@@ -30,6 +30,18 @@ class TestExtractIpcValue:
     def test_float_fallback(self):
         assert extract_ipc_value({}, hint=3.14) == 3.14
 
+    def test_bool_from_bool_field(self):
+        # Hyprland 0.55+ returns bool options in a dedicated ``bool`` field
+        # instead of overloading ``int``. Both forms must extract correctly
+        # so a value explicitly set to False isn't masked by the hint default.
+        assert extract_ipc_value({"bool": True}, hint=False) is True
+        assert extract_ipc_value({"bool": False}, hint=True) is False
+
+    def test_bool_field_takes_priority_over_int(self):
+        # If both fields appear, prefer ``bool`` — it's the 0.55+ source
+        # of truth, and ``int`` may be a stale fallback.
+        assert extract_ipc_value({"bool": False, "int": 1}, hint=True) is False
+
     def test_bool_from_int_field(self):
         assert extract_ipc_value({"int": 1}, hint=False) is True
         assert extract_ipc_value({"int": 0}, hint=True) is False
@@ -48,6 +60,10 @@ class TestExtractIpcValue:
 
     def test_str_empty_sentinel(self):
         assert extract_ipc_value({"str": "[[EMPTY]]"}, hint="") == ""
+
+    def test_str_from_bool_field(self):
+        assert extract_ipc_value({"bool": True}, hint="") == "true"
+        assert extract_ipc_value({"bool": False}, hint="") == "false"
 
     def test_str_from_int_field(self):
         assert extract_ipc_value({"int": 3}, hint="") == "3"
@@ -70,6 +86,7 @@ class TestExtractIpcValue:
         assert extract_ipc_value({}, hint="default") == "default"
 
     def test_no_hint_returns_first_field(self):
+        assert extract_ipc_value({"bool": True}) is True
         assert extract_ipc_value({"int": 7}) == 7
         assert extract_ipc_value({"float": 1.5}) == 1.5
         assert extract_ipc_value({"str": "hello"}) == "hello"

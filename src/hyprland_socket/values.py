@@ -3,6 +3,12 @@
 from collections.abc import Callable
 from typing import Any
 
+# Hyprland uses ``"[[EMPTY]]"`` as a sentinel for the empty-string value in
+# ``str`` fields. The pattern shows up in a handful of options (e.g.
+# ``general:layout`` before any override) — substitute back to "" so callers
+# don't have to know about the sentinel.
+_EMPTY_STRING_MARKER = "[[EMPTY]]"
+
 
 def _try_custom(data: dict[str, Any], convert: Callable[[str], Any]) -> Any:
     """Extract and convert the first token from the custom-shorthand field.
@@ -28,7 +34,9 @@ def extract_ipc_value(data: dict[str, Any], hint: Any = None) -> Any:
 
     Hyprland returns values in different fields depending on the type:
 
-    - int/bool: ``{"int": N}``
+    - bool: ``{"bool": true|false}`` on Hyprland 0.55+, ``{"int": 0|1}``
+      on 0.54.x and earlier
+    - int: ``{"int": N}``
     - float: ``{"float": F}``
     - str: ``{"str": S}``
     - CSS-shorthand types (e.g. gaps): ``{"custom": "5 5 5 5"}`` on
@@ -45,6 +53,8 @@ def extract_ipc_value(data: dict[str, Any], hint: Any = None) -> Any:
     instead of ``int``).
     """
     if isinstance(hint, bool):
+        if "bool" in data:
+            return bool(data["bool"])
         if "int" in data:
             return bool(data["int"])
         val = _try_custom(data, lambda s: bool(int(s)))
@@ -62,7 +72,9 @@ def extract_ipc_value(data: dict[str, Any], hint: Any = None) -> Any:
     if isinstance(hint, str):
         if "str" in data:
             val = data["str"]
-            return "" if val == "[[EMPTY]]" else val
+            return "" if val == _EMPTY_STRING_MARKER else val
+        if "bool" in data:
+            return "true" if data["bool"] else "false"
         if "int" in data:
             return str(data["int"])
         if "vec2" in data:
@@ -74,10 +86,10 @@ def extract_ipc_value(data: dict[str, Any], hint: Any = None) -> Any:
             return data["css"]
         return hint
     # No hint — return the first non-null typed field
-    for field in ("int", "float", "str", "custom", "css"):
+    for field in ("bool", "int", "float", "str", "custom", "css"):
         if field in data:
             val = data[field]
-            if field == "str" and val == "[[EMPTY]]":
+            if field == "str" and val == _EMPTY_STRING_MARKER:
                 return ""
             return val
     if "vec2" in data:

@@ -5,6 +5,14 @@ All notable changes to hyprland-socket will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.1] - 2026-05-16
+
+### Fixed
+
+- `Bind.from_dict()` now correctly parses `submap_universal` as both bool and string values, matching different Hyprland snapshot releases
+- `Window.from_dict()` uses safer null-coalescing for `at`, `size`, and `workspace` fields
+- `extract_ipc_value()` now reads the `bool` field that Hyprland 0.55+ uses for boolean options (e.g. `decoration:blur:enabled`), which was previously overloaded onto `int` as `0`/`1`. Without this, boolean options whose value differed from the schema default were silently masked by the hint fallback. Both fields are recognised; if both appear, `bool` takes priority.
+
 ## [0.12.0] - 2026-05-15
 
 ### Fixed
@@ -170,6 +178,7 @@ Initial release — typed Python library for Hyprland IPC via Unix sockets.
 - Typed dataclasses: `Monitor`, `Bind`, `Animation`, `Event`
 - Exception-based error handling: `ConnectionError`, `CommandError`
 
+[0.12.1]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.12.1
 [0.12.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.12.0
 [0.11.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.11.0
 [0.10.0]: https://github.com/BlueManCZ/hyprland-socket/releases/tag/v0.10.0

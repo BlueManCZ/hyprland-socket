@@ -3,6 +3,10 @@
 from dataclasses import dataclass
 from typing import Any, Self
 
+# Modifier bits as Hyprland emits them in the ``modmask`` JSON field. These
+# match the wlroots/xkbcommon modifier indices Hyprland uses internally:
+# https://github.com/hyprwm/Hyprland/blob/main/src/managers/KeybindManager.cpp
+# (search ``modToMask``). Keep in sync if the compositor ever renumbers them.
 MOD_BITS: dict[str, int] = {
     "SUPER": 64,
     "SHIFT": 1,
@@ -141,8 +145,10 @@ class Bind:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
-        raw = data.get("submap_universal", "false")
-        submap_universal = raw if isinstance(raw, bool) else raw != "false"
+        # Hyprland emits this as "true"/"false" in current builds, bool in older ones;
+        # strict "true" match (not `!= "false"`) so null/empty/garbage stays False.
+        raw = data.get("submap_universal", False)
+        submap_universal = raw if isinstance(raw, bool) else str(raw).lower() == "true"
         return cls(
             modmask=data["modmask"],
             key=data["key"],
@@ -272,9 +278,9 @@ class Window:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
-        at = data.get("at", [0, 0])
-        size = data.get("size", [0, 0])
-        ws = data.get("workspace", {})
+        at = data.get("at") or (0, 0)
+        size = data.get("size") or (0, 0)
+        ws = data.get("workspace") or {}
         return cls(
             address=data["address"],
             mapped=data.get("mapped", False),
