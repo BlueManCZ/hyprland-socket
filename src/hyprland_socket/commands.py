@@ -147,7 +147,7 @@ def get_binds() -> list[Bind]:
 
 def get_monitors() -> list[Monitor]:
     """Read all monitors from Hyprland."""
-    data = _query_json("monitors")
+    data = _query_json("monitors all")
     return [Monitor.from_dict(m) for m in data]
 
 
